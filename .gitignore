@@ -1,29 +1,25 @@
-# Saídas geradas pela aplicação
-output/
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
-# Ferramentas internas de correção (não publicar)
-avaliacao/
+node_modules
+dist
+dist-ssr
+*.local
+.pnpm-store/*
 
-# Dependências
-node_modules/
-venv/
-env/
-__pycache__/
-*.pyc
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Sistemas operacionais
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
 .DS_Store
-Thumbs.db
-
-# Ambiente
-.env
-.env.local
-
-# NOTA: os PDFs de `exemplos/` e as planilhas entregues devem ser
-# versionados. Não adicione `*.pdf` / `*.xlsx` aqui.
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

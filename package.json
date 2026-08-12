@@ -1,20 +1,32 @@
 {
   "name": "desafio-programador",
-  "version": "2.0.0",
   "private": true,
+  "version": "0.0.0",
   "type": "module",
-  "description": "Desafio técnico da Quick Filler: transcrição de cartões de ponto e holerites em PDF para planilha, com aplicação web publicada",
-  "engines": {
-    "node": ">=22"
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+ssh://git@github.com/quick-filler/desafio-programador.git"
+  "dependencies": {
+    "@libpdf/core": "^0.4.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
-  "author": "Quick Filler <contato@quickfiller.org>",
-  "license": "CC0-1.0",
-  "bugs": {
-    "url": "https://github.com/quick-filler/desafio-programador/issues"
-  },
-  "homepage": "https://github.com/quick-filler/desafio-programador#readme"
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "eslint": "^10.8.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.3",
+    "globals": "^17.7.0",
+    "typescript": "~6.0.2",
+    "typescript-eslint": "^8.65.0",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
 }
