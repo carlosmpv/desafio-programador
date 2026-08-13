@@ -1,7 +1,7 @@
 import { PDF } from '@dvvebond/core'
 import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { PayrollParser } from '../parsers/payroll-parser';
+import { SimplePayrollParser } from '../parsers/payroll-parser';
 import { WasmPdfDocument } from 'pdf-oxide-wasm';
 
 const payRollFiles = [
@@ -12,33 +12,38 @@ const payRollFiles = [
 ];
 
 describe("Payroll PDF's exists and are parseable", () => {
-    // test('Payrolls are found among examples folder', () => {
-    //     payRollFiles.forEach(file => readFileSync(file))
-    // })
+    test('Payrolls are found among examples folder', () => {
+        payRollFiles.forEach(file => readFileSync(file))
+    })
 
-    // test("Payrolls are read", async () => {
-    //     payRollFiles.forEach(async payRoll => {
-    //         const data = readFileSync(payRoll)
-    //         const pdf = await PDF.load(data)
-    //         const pages = pdf.getPages()
-    //         console.log(`Payroll ${payRoll} has ${pages.length} pages`)
-    //     })
-    // })
-
-    test("Check payroll content", () => {
+    test("Payrolls are read", async () => {
         payRollFiles.forEach(async payRoll => {
             const data = readFileSync(payRoll)
-            const doc = new WasmPdfDocument(data);
-            console.log('------------------------------------------------------------------------------------------------------')
-            console.log(doc.extractAllText());
+            const pdf = await PDF.load(data)
+            const pages = pdf.getPages()
+            console.log(`Payroll ${payRoll} has ${pages.length} pages`)
         })
     })
+
+    // test("Check payroll content", () => {
+    //     payRollFiles.forEach(async payRoll => {
+    //         const data = readFileSync(payRoll)
+    //         const doc = new WasmPdfDocument(data);
+    //         console.log('------------------------------------------------------------------------------------------------------')
+    //         console.log(doc.extractAllText());
+    //     })
+    // })
 })
 
-// describe("PayrollParser works", () => {
-//     test("PayrollParser works", async () => {
-//         const data = readFileSync(payRollFiles[0])
-//         const payrollParse = new PayrollParser()
-//         payrollParse.parse(data)
-//     })
-// })
+describe("PayrollParser works", () => {
+    test("Can parse payroll-1", async () => {
+        const data = readFileSync(payRollFiles[0])
+        const payrollParse = new SimplePayrollParser({
+            monthYearRegex: /Mês: (\w{3})-(\d{2})/,
+            beginReading: /Mês: \w{3}-\d{2}/,
+            endReading: /Folha Normal/
+        });
+
+        payrollParse.parse(data)
+    })
+})

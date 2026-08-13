@@ -12,6 +12,7 @@ export type PayrollPageField = {
 export type PayrollPage = {
     page: number,
     year: string,
+    month: string,
     fields: PayrollPageField[],
     bases: PayrollPageBase[],
 };
