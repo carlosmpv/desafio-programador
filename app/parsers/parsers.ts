@@ -1,6 +1,9 @@
 
 
-export type PayrollPageBase = {};
+export type PayrollPageBase = {
+    label: string,
+    value: string,
+};
 
 export type PayrollPageField = {
     code: string,
