@@ -1,5 +1,11 @@
 import { WasmPdfDocument } from "pdf-oxide-wasm";
 
+
+type Cluster = {
+    x: number;
+    count: number;
+};
+
 interface Word {
     chars: any[],
     bbox: {
@@ -27,7 +33,7 @@ const DEFAULT_TABLE_OPTIONS: TableDetectorOptions = {
 }
 
 function printMatrix(matrix: Word[][]) {
-    console.log("\n", matrix.map((row) => row.map(word => word.text).join(" | ")).join("\n"))
+    console.table(matrix.map((row) => row.map(word => word.text)))
 }
 
 function printMatrixArray(matrix: Word[][][]) {
@@ -151,15 +157,14 @@ export class TableDetector {
     }
 
     detect(page: number): Word[][][] {
-        
+
         const wellReadCodes = this.doc.extractText(page, null)
         const knownWords = new Set<string>(wellReadCodes.split(/\s+/).filter(v => !!v))
-        console.log(knownWords)
-        const words = this.doc.extractWords(page).map((w: Word) => knownWords.has(w.text) ? w : {...w, text: `??${w.text}??`})
+        const words = this.doc.extractWords(page).map((w: Word) => knownWords.has(w.text) ? w : { ...w, text: `??${w.text}??` })
 
         const sortedLines = this.getSortedLines(words)
         if (!sortedLines.length) return [];
-        
+
 
         // Build column clusters from ALL lines
         const allWords = sortedLines.flat();
@@ -278,83 +283,92 @@ export class TableDetector {
         }
 
         printMatrix(detectedTables[2])
-        this.identifyColumns(detectedTables[2])
+        const table = detectedTables[2];
+        const allWordss = table.flat();
+        const columnCenters = this.detectColumnCenters(allWordss, 12);
+        const normalized = this.normalizeTable(table, columnCenters);
+        console.table(normalized);
+
+        // this.identifyColumns(detectedTables[2])
+        // this.normalizeTable(detectedTables[2])
+
+
         return detectedTables
     }
 
-    private identifyColumns(alignedWords: Word[][]) {
-        const leftAlignedXCount = new Map<number, number>();
-        const rightAlignedXCount = new Map<number, number>();
 
-        for (const line of alignedWords) {
-            for (const word of line) {
-                const roundedXMin = Math.floor(word.bbox.x)
-                const lcount = leftAlignedXCount.get(roundedXMin) || 0;
-                leftAlignedXCount.set(roundedXMin, lcount + 1)
-                
-                const roundedXMax = Math.ceil(word.bbox.x + word.bbox.width)
-                const rcount = rightAlignedXCount.get(roundedXMax) || 0;
-                rightAlignedXCount.set(roundedXMax, rcount + 1)
+
+
+    private detectColumnCenters(words: Word[], eps = 12, minCount = 2): number[] {
+        const centers = words
+            .map(w => w.bbox.x + w.bbox.width / 2)
+            .sort((a, b) => a - b);
+
+        const clusters: Cluster[] = [];
+
+        for (const c of centers) {
+            const last = clusters[clusters.length - 1];
+
+            if (!last) {
+                clusters.push({ x: c, count: 1 });
+                continue;
+            }
+
+            if (Math.abs(c - last.x) <= eps) {
+                last.x = (last.x * last.count + c) / (last.count + 1);
+                last.count += 1;
+            } else {
+                clusters.push({ x: c, count: 1 });
             }
         }
 
-        const minRequiredMatches = 2;
-        let newTable: Word[][] = []
-        
-        for (const line of alignedWords) {
-            let aggregatedColumns: Word[] = []
-            let aggregatedColumn: Word | undefined = undefined;
-            let lastWordIsSelfColumn = false; // Identifica a propria palavra já fecha a coluna
-
-            for (const word of line) {
-                if (!aggregatedColumn) {
-                    aggregatedColumn = {...word};
-                    continue
-                }
-
-                const roundedXMin = Math.floor(word.bbox.x)
-                const leftMatches = leftAlignedXCount.get(roundedXMin) || 0
-                const roundedXMax = Math.ceil(word.bbox.x + word.bbox.width)
-                const rightMatches = rightAlignedXCount.get(roundedXMax) || 0
-
-                if (word.text == "FVuAncionario") {
-                    console.log("FVuAncionario\n", word.bbox)
-                    console.log(roundedXMin, roundedXMax)
-                    console.log("leftMatches", leftMatches)
-                    console.log("rightMatches", rightMatches)
-                }
-
-                if (word.text == "Seguro Vida Fun") {
-                    console.log("Seguro Vida Fun\n", word.bbox)
-                    console.log(roundedXMin, roundedXMax)
-                    console.log("leftMatches", leftMatches)
-                    console.log("rightMatches", rightMatches)
-                }
-
-                if (word.text == "Vale Ref Func") {
-                    console.log("Vale Ref Func\n", word.bbox)
-                    console.log(roundedXMin, roundedXMax)
-                    console.log("leftMatches", leftMatches)
-                    console.log("rightMatches", rightMatches)
-                }
-
-                if (leftMatches < minRequiredMatches && rightMatches < minRequiredMatches && !lastWordIsSelfColumn) {
-                    this.joinWords(aggregatedColumn, word)
-                } else {
-                    lastWordIsSelfColumn = leftMatches == rightMatches
-                    aggregatedColumns.push(aggregatedColumn)
-                    aggregatedColumn = {...word}
-                }
+        // Mescla clusters raros no vizinho mais próximo
+        const filtered: Cluster[] = [];
+        for (const cluster of clusters) {
+            if (cluster.count >= minCount) {
+                filtered.push(cluster);
+                continue;
             }
 
-            if (aggregatedColumn) {
-                aggregatedColumns.push(aggregatedColumn)
+            const prev = filtered[filtered.length - 1];
+            if (prev && Math.abs(prev.x - cluster.x) <= eps * 2) {
+                prev.x = (prev.x * prev.count + cluster.x * cluster.count) / (prev.count + cluster.count);
+                prev.count += cluster.count;
             }
-            newTable.push(aggregatedColumns)
         }
 
-        printMatrix(newTable)
+        return filtered.map(c => c.x);
     }
+
+    private getColumnIndex(word: Word, columnCenters: number[]): number {
+        const center = word.bbox.x + word.bbox.width / 2;
+        let bestIdx = 0;
+        let bestDist = Infinity;
+
+        for (let i = 0; i < columnCenters.length; i++) {
+            const dist = Math.abs(center - columnCenters[i]);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestIdx = i;
+            }
+        }
+
+        return bestIdx;
+    }
+
+    private normalizeTable(table: Word[][], columnCenters: number[]): (string | null)[][] {
+        return table.map(line => {
+            const row: (string | null)[] = Array(columnCenters.length).fill(null);
+
+            for (const word of line) {
+                const idx = this.getColumnIndex(word, columnCenters);
+                row[idx] = row[idx] ? `${row[idx]} ${word.text}` : word.text;
+            }
+
+            return row;
+        });
+    }
+
 
 
 }

@@ -120,7 +120,7 @@ export class SimplePayrollParser implements IPayrollParser {
             }
         }
 
-        console.log(currentPage)
+        // console.log(currentPage)
 
         // for (const [y, line] of lineMap.entries()) {
         //     sortedLines.
