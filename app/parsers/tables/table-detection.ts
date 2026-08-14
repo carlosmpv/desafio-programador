@@ -25,11 +25,20 @@ interface Word {
 type TableDetectorOptions = {
     minTableSize: number,
     requiredAligntment: number, // entre 0 e 1
+    wordSpacing: number,
+    columnsCenterTol: number,
+    columnsClusterTol: number,
+    minCellsPerCluster: number,
 }
 
-const DEFAULT_TABLE_OPTIONS: TableDetectorOptions = {
+export const DEFAULT_TABLE_OPTIONS: TableDetectorOptions = {
     minTableSize: 2,
-    requiredAligntment: 0.60
+    requiredAligntment: 0.60,
+    wordSpacing: 3,
+    columnsCenterTol: 12,
+    minCellsPerCluster: 2,
+    columnsClusterTol: 8,
+    
 }
 
 function printMatrix(matrix: Word[][]) {
@@ -76,7 +85,7 @@ export class TableDetector {
     private aggregateWords(line: Word[]): Word[] {
         if (!line.length) return [];
 
-        const threshold = 3; // tornar configurável
+        const threshold = this.options.wordSpacing; // tornar configurável
         // const avgFontSize = this.lineAvgFontSize(line);
 
         let result: Word[] = []
@@ -130,7 +139,7 @@ export class TableDetector {
         return gap <= eps;
     }
 
-    private findColumnClusters(words: Word[], eps: number = 10): number[] {
+    private findColumnClusters(words: Word[]): number[] {
         const xPositions = words.flatMap(w => [
             w.bbox.x,
             w.bbox.x + w.bbox.width / 2,
@@ -144,7 +153,7 @@ export class TableDetector {
         for (const pos of sorted) {
             let found = false;
             for (const cluster of clusters) {
-                if (Math.abs(pos - cluster) <= eps) {
+                if (Math.abs(pos - cluster) <= this.options.columnsClusterTol) {
                     found = true;
                     break;
                 }
@@ -156,7 +165,7 @@ export class TableDetector {
         return clusters;
     }
 
-    detect(page: number): Word[][][] {
+    detect(page: number): (string | null)[][][] {
 
         const wellReadCodes = this.doc.extractText(page, null)
         const knownWords = new Set<string>(wellReadCodes.split(/\s+/).filter(v => !!v))
@@ -168,7 +177,7 @@ export class TableDetector {
 
         // Build column clusters from ALL lines
         const allWords = sortedLines.flat();
-        const columnClusters = this.findColumnClusters(allWords, 8);
+        const columnClusters = this.findColumnClusters(allWords);
 
         // console.log(`Found ${columnClusters.length} column clusters`);
 
@@ -282,24 +291,23 @@ export class TableDetector {
             // console.log('');
         }
 
-        printMatrix(detectedTables[2])
-        const table = detectedTables[2];
-        const allWordss = table.flat();
-        const columnCenters = this.detectColumnCenters(allWordss, 12);
-        const normalized = this.normalizeTable(table, columnCenters);
-        console.table(normalized);
+        
 
         // this.identifyColumns(detectedTables[2])
         // this.normalizeTable(detectedTables[2])
 
 
-        return detectedTables
+        const tables = detectedTables.map(tbl => {
+            const allWords = tbl.flat();
+            const columnCenters = this.detectColumnCenters(allWords);
+            return this.normalizeTable(tbl, columnCenters);
+        })
+
+        return tables.filter(tbl => tbl.length && tbl[0].length > this.options.minTableSize)
     }
 
 
-
-
-    private detectColumnCenters(words: Word[], eps = 12, minCount = 2): number[] {
+    private detectColumnCenters(words: Word[]): number[] {
         const centers = words
             .map(w => w.bbox.x + w.bbox.width / 2)
             .sort((a, b) => a - b);
@@ -314,7 +322,7 @@ export class TableDetector {
                 continue;
             }
 
-            if (Math.abs(c - last.x) <= eps) {
+            if (Math.abs(c - last.x) <= this.options.columnsCenterTol) {
                 last.x = (last.x * last.count + c) / (last.count + 1);
                 last.count += 1;
             } else {
@@ -325,13 +333,13 @@ export class TableDetector {
         // Mescla clusters raros no vizinho mais próximo
         const filtered: Cluster[] = [];
         for (const cluster of clusters) {
-            if (cluster.count >= minCount) {
+            if (cluster.count >= this.options.minCellsPerCluster) {
                 filtered.push(cluster);
                 continue;
             }
 
             const prev = filtered[filtered.length - 1];
-            if (prev && Math.abs(prev.x - cluster.x) <= eps * 2) {
+            if (prev && Math.abs(prev.x - cluster.x) <= this.options.columnsCenterTol * 2) {
                 prev.x = (prev.x * prev.count + cluster.x * cluster.count) / (prev.count + cluster.count);
                 prev.count += cluster.count;
             }

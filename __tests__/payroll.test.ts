@@ -54,12 +54,22 @@ const payRollFiles = [
 
 describe("Table detector works", () => {
     test("Test table detector", async () => {
-        const data = readFileSync(payRollFiles[0])
+        const data = readFileSync(payRollFiles[1])
         const doc = new WasmPdfDocument(data);
         const words = doc.extractWords(0, null);
-        const tableDetector = new TableDetector(doc);
+
+        const tableDetector = new TableDetector(doc, {
+            minTableSize: 2,
+            requiredAligntment: 0.60,
+            wordSpacing: 3,
+            columnsCenterTol: 50,
+            minCellsPerCluster: 2,
+            columnsClusterTol: 8,
+        });
         const detectedTables = tableDetector.detect(words)
-        // console.log(detectedTables)
+
+        
+        detectedTables.forEach(v => console.table(v))
 
     })
 })
