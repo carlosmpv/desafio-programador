@@ -1,7 +1,7 @@
 import { PDF } from '@libpdf/core'
 import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { SimplePayrollParser } from '@/app/parsers/payroll-parser';
+import { PayrollParser } from '@/app/parsers/payroll-parser';
 import { PDFParse } from 'pdf-parse'
 import { WasmPdfDocument } from 'pdf-oxide-wasm';
 import { TableDetector } from '@/app/parsers/tables/table-detection';

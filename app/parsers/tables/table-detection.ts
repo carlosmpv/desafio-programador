@@ -22,7 +22,7 @@ interface Word {
     sequence: number
 }
 
-type TableDetectorOptions = {
+export type TableDetectorOptions = {
     minTableSize: number,
     requiredAligntment: number, // entre 0 e 1
     wordSpacing: number,
