@@ -1,10 +1,10 @@
 import { PDF } from '@libpdf/core'
 import { describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
-import { PayrollParser } from '@/app/parsers/payroll-parser';
+import { PayrollParser } from '@/parsers/payroll-parser';
 import { PDFParse } from 'pdf-parse'
 import { WasmPdfDocument } from 'pdf-oxide-wasm';
-import { TableDetector } from '@/app/parsers/tables/table-detection';
+import { TableDetector } from '@/parsers/tables/table-detection';
 
 const payRollFiles = [
     "exemplos/payroll-01.pdf",
@@ -13,63 +13,29 @@ const payRollFiles = [
     "exemplos/payroll-04.pdf",
 ];
 
-// describe("Payroll PDF's exists and are parseable", () => {
-//     test('Payrolls are found among examples folder', () => {
-//         payRollFiles.forEach(file => readFileSync(file))
-//     })
 
-//     test("Payrolls are read", async () => {
-//         payRollFiles.forEach(async payRoll => {
-//             const data = readFileSync(payRoll)
-//             const pdf = await PDF.load(data)
-//             const pages = pdf.getPages()
-//             console.log(`Payroll ${payRoll} has ${pages.length} pages`)
-//         })
-//     })
 
-//     // test("Check payroll content", () => {
-//     //     payRollFiles.forEach(async payRoll => {
-//     //         const data = readFileSync(payRoll)
-//     //         const doc = new WasmPdfDocument(data);
-//     //         console.log('------------------------------------------------------------------------------------------------------')
-//     //         console.log(doc.extractAllText());
-//     //     })
-//     // })
-// })
 
-// describe("PayrollParser works", () => {
-//     test("Can parse payroll-1", async () => {
+// describe("Table detector works", () => {
+//     test("Test table detector", async () => {
 //         const data = readFileSync(payRollFiles[0])
-//         const payrollParse = new SimplePayrollParser({
-//             monthYearRegex: /Mês: (\w{3})-(\d{2})/,
-//             beginReading: /Mês: \w{3}-\d{2}/,
-//             endReading: /Folha Normal/
-//         });
+//         const doc = new WasmPdfDocument(data);
+//         const words = doc.extractWords(0, null);
 
-//         payrollParse.parse(data)
+//         const tableDetector = new TableDetector(doc);
+//         const detectedTables = tableDetector.detect(words)
+//         detectedTables.forEach(v => console.table(v))
 //     })
 // })
 
-
-
-describe("Table detector works", () => {
-    test("Test table detector", async () => {
-        const data = readFileSync(payRollFiles[1])
+describe("PayrollParser works", () => {
+    test("Can parse payroll-01", () => {
+        const data = readFileSync(payRollFiles[0])
         const doc = new WasmPdfDocument(data);
-        const words = doc.extractWords(0, null);
 
-        const tableDetector = new TableDetector(doc, {
-            minTableSize: 2,
-            requiredAligntment: 0.60,
-            wordSpacing: 3,
-            columnsCenterTol: 50,
-            minCellsPerCluster: 2,
-            columnsClusterTol: 8,
-        });
-        const detectedTables = tableDetector.detect(words)
-
+        const parser = new PayrollParser(doc)
+        const payroll = parser.parse();
+        console.log(payroll.pages)
         
-        detectedTables.forEach(v => console.table(v))
-
     })
 })

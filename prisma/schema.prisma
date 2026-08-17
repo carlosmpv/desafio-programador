@@ -18,14 +18,14 @@ enum TranscriptionType {
 }
 
 enum TranscriptionStatus {
-  Done
-  Processing
-  Error
+  concluido
+  processando
+  erro
 }
 
 model Transcription {
   id String @id @default(uuid())
-  type TranscriptionType
+  tipo TranscriptionType
   status TranscriptionStatus
   erro String?
   value Json?

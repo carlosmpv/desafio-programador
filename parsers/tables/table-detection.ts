@@ -38,21 +38,10 @@ export const DEFAULT_TABLE_OPTIONS: TableDetectorOptions = {
     columnsCenterTol: 12,
     minCellsPerCluster: 2,
     columnsClusterTol: 8,
-    
 }
 
 function printMatrix(matrix: Word[][]) {
     console.table(matrix.map((row) => row.map(word => word.text)))
-}
-
-function printMatrixArray(matrix: Word[][][]) {
-    console.log(`Total de tabelas: ${matrix.length}`);
-
-    matrix.forEach((table, tableIndex) => {
-        console.log(`\n=== TABELA ${tableIndex + 1} ===`);
-        console.log(`Linhas: ${table.length}`);
-        printMatrix(table)
-    });
 }
 
 export class TableDetector {
@@ -166,10 +155,13 @@ export class TableDetector {
     }
 
     detect(page: number): (string | null)[][][] {
-
-        const wellReadCodes = this.doc.extractText(page, null)
-        const knownWords = new Set<string>(wellReadCodes.split(/\s+/).filter(v => !!v))
-        const words = this.doc.extractWords(page).map((w: Word) => knownWords.has(w.text) ? w : { ...w, text: `??${w.text}??` })
+        const wellReadWords = this.doc.extractText(page, null)
+        const knownWords = new Set<string>(wellReadWords.split(/\s+/).filter(v => !!v))
+        const words = this.doc.extractWords(page).map(
+            (w: Word) => knownWords.has(w.text)
+                ? w
+                : { ...w, text: `??${w.text}??` }
+        )
 
         const sortedLines = this.getSortedLines(words)
         if (!sortedLines.length) return [];
@@ -178,11 +170,10 @@ export class TableDetector {
         // Build column clusters from ALL lines
         const allWords = sortedLines.flat();
         const columnClusters = this.findColumnClusters(allWords);
-
         // console.log(`Found ${columnClusters.length} column clusters`);
 
         let detectedTables: Word[][][] = [];
-        let currentTable: Word[][] = []
+        let currentTable: Word[][] = [];
         let isReadingTable = false;
 
         for (let i = 1; i < sortedLines.length; i++) {
@@ -291,11 +282,14 @@ export class TableDetector {
             // console.log('');
         }
 
-        
+        if (currentTable) {
+            detectedTables.push(currentTable)
+        }
+
+
 
         // this.identifyColumns(detectedTables[2])
         // this.normalizeTable(detectedTables[2])
-
 
         const tables = detectedTables.map(tbl => {
             const allWords = tbl.flat();

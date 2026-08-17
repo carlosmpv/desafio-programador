@@ -1,4 +1,4 @@
-import { Payroll } from "@/app/models/payroll";
+import { Payroll } from "@/models/payroll";
 import { Transcription } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { test, describe, expect, afterAll, expectTypeOf } from "vitest";
@@ -37,8 +37,8 @@ describe("ORM works", () => {
     test("Can create transcription", async () => {
         transcription = await prisma.transcription.create({
             data: {
-                type: "Payroll",
-                status: "Processing"
+                tipo: "Payroll",
+                status: "processando"
             },
         })
     })
@@ -55,12 +55,12 @@ describe("ORM works", () => {
         transcription = await prisma.transcription.update({
             where: { id: transcription.id },
             data: {
-                status: "Done",
+                status: "concluido",
                 value: payroll
             },
         })
 
-        expect(transcription.status).toBe("Done")
+        expect(transcription.status).toBe("concluido")
         expect(transcription.value).toMatchObject(payroll)
     })
 })

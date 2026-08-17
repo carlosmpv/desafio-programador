@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
 export async function GET(_req: NextRequest, ctx: RouteContext<'/api/transcricoes/[id]/planilha'>) {
-//   const { id } = await ctx.params
+  // Deve um parâmetro "?formato=xlsx|csv|json" e retornar de acordo
   return Response.json({ "hello": "world" })
 }
