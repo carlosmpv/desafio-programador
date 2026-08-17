@@ -1,7 +1,7 @@
 import type { Payroll, PayrollPage, PayrollPageBase, PayrollPageField } from "../models/payroll";
 import { WasmPdfDocument } from 'pdf-oxide-wasm'
 import { DEFAULT_TABLE_OPTIONS, TableDetector, TableDetectorOptions } from "./tables/table-detection";
-import { columnRoles } from "./tables/table-role-resolver";
+import { columnRoles, Role } from "./tables/table-role-resolver";
 
 
 export class PayrollParser {
@@ -30,12 +30,14 @@ export class PayrollParser {
 
             // Vou assumir que haverá 1 tabela por ano/mes por página
             // console.log(yearsMonths)
+
             for (let i = 0; i < Math.min(yearsMonths.length, tables.length); i++) {
                 const [month, year] = yearsMonths[i];
                 const table = tables[i];
-                const roles = columnRoles(table)
+                const roles = columnRoles(table);
+                const mergedRoles: Role[] = [];
 
-                const mergedColumnsTable = table.map(line => {
+                const mergedColumnsTable = table.map((line, lineIdx) => {
                     const newLine = [];
                     let i = 0;
 
@@ -57,15 +59,24 @@ export class PayrollParser {
                             }
 
                             newLine.push(merged);
+
+                            // Adiciona apenas UMA role para o grupo mesclado
+                            if (!lineIdx)
+                                mergedRoles.push(currentRole);
+
                             i = j;
                         } else {
                             newLine.push(line[i]);
+                            // Adiciona a role individual
+                            if (!lineIdx)
+                                mergedRoles.push(currentRole);
                             i++;
                         }
                     }
 
                     return newLine;
                 });
+
 
                 let fields: PayrollPageField[] = []
                 let currentField: PayrollPageField | null = null
@@ -76,14 +87,14 @@ export class PayrollParser {
                     line.forEach((cell, j) => {
                         if (!cell) return;
 
-                        const role = roles[j];
+                        const role = mergedRoles[j];
                         switch (role) {
                             case "field_code":
                                 if (!!currentBase) {
                                     bases.push(currentBase)
                                     currentBase = null
                                 }
-                                
+
                                 if (!currentField) {
                                     currentField = {
                                         code: "",
@@ -169,6 +180,12 @@ export class PayrollParser {
                 if (!!currentBase) {
                     bases.push(currentBase)
                 }
+
+                console.log('fields', fields)
+                console.log('bases', bases)
+                console.table(mergedColumnsTable)
+                console.table(mergedRoles)
+
 
                 pages.push({
                     page: page,

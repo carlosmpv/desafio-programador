@@ -35,7 +35,7 @@ describe("PayrollParser works", () => {
 
         const parser = new PayrollParser(doc)
         const payroll = parser.parse();
-        console.log(payroll.pages)
+        // payroll.pages.map(pg => console.log(pg))
         
     })
 })
