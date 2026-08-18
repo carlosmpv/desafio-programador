@@ -61,12 +61,10 @@ export default function FileUpload() {
 
     try {
       for (const file of files) {
-        const id = await uploadPDF({
+        await uploadPDF({
           arquivo: file,
           tipo: 'holerite',
         });
-        
-        router.push(`/${id}`)
       }
     } catch (submitError) {
       setError(

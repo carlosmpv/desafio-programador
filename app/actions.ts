@@ -1,13 +1,14 @@
 'use server'
 
 import { Transcription } from "@/generated/prisma/browser";
+import { redirect } from "next/navigation";
 
 export type UploadPDFRequest = {
     arquivo: File,
     tipo: "cartao-ponto" | "holerite"
 };
 
-export async function uploadPDF({ arquivo, tipo }: UploadPDFRequest): Promise<string> {
+export async function uploadPDF({ arquivo, tipo }: UploadPDFRequest) {
     const formData = new FormData();
     formData.append("arquivo", arquivo);
     formData.append("tipo", tipo);
@@ -23,7 +24,7 @@ export async function uploadPDF({ arquivo, tipo }: UploadPDFRequest): Promise<st
     }
 
     const { id } = await response.json();
-    return id;
+    redirect(`/${id}`);
 }
 
 export async function getTranscription(id: string): Promise<Transcription | null> {
