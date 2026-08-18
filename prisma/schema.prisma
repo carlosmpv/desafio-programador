@@ -30,3 +30,8 @@ model Transcription {
   erro String?
   value Json?
 }
+
+model PDFFile {
+  id String @id
+  filepath String
+}

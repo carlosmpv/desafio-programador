@@ -6,6 +6,8 @@ import { TranscriptionType } from '@/generated/prisma/enums';
 import { Transcription } from '@/generated/prisma/client';
 import { PayrollParser } from "@/parsers/payroll-parser";
 import { WasmPdfDocument } from "pdf-oxide-wasm";
+import fs from 'fs/promises';
+import path from "path";
 
 export async function POST(req: NextRequest) {
     const formData = await req.formData();
@@ -40,20 +42,28 @@ export async function POST(req: NextRequest) {
     const fileArrayBuffer = await file.arrayBuffer();
     const fileUint8Array = new Uint8Array(fileArrayBuffer)
     void backgroundProcess(fileUint8Array, transcription);
-    
+
     return Response.json({ "id": transcription.id }, { status: 202 })
 }
 
 async function backgroundProcess(fileData: Uint8Array<ArrayBufferLike>, transcription: Transcription) {
+    const filePath = await saveFileData(fileData, transcription.id);
+    await prisma.pDFFile.create({
+        data: {
+            filepath: filePath,
+            id: transcription.id,
+        }
+    })
+
     const doc = new WasmPdfDocument(fileData)
 
     switch (transcription.tipo) {
         case "Payroll":
             const parser = new PayrollParser(doc)
-            
+
             try {
                 const result = parser.parse()
-                
+
                 await prisma.transcription.update({
                     where: { id: transcription.id },
                     data: {
@@ -65,7 +75,7 @@ async function backgroundProcess(fileData: Uint8Array<ArrayBufferLike>, transcri
                 const errorMessage = (error instanceof Error)
                     ? error.message
                     : `Unexpected error ${error}`;
-                
+
                 await prisma.transcription.update({
                     where: { id: transcription.id },
                     data: {
@@ -87,4 +97,12 @@ async function backgroundProcess(fileData: Uint8Array<ArrayBufferLike>, transcri
                 },
             })
     }
+}
+
+async function saveFileData(fileData: Uint8Array, transcriptionId: string): Promise<string> {
+    const tempDir = path.join(process.cwd(), 'tmp', 'transcriptions');
+    await fs.mkdir(tempDir, { recursive: true });
+    const filePath = path.join(tempDir, `${transcriptionId}.pdf`);
+    await fs.writeFile(filePath, fileData);
+    return filePath;
 }
