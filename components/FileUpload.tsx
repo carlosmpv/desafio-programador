@@ -66,12 +66,6 @@ export default function FileUpload() {
           tipo: 'holerite',
         });
       }
-    } catch (submitError) {
-      setError(
-        submitError instanceof Error
-          ? submitError.message
-          : 'Não foi possível enviar os arquivos.'
-      );
     } finally {
       setIsSubmitting(false);
     }
