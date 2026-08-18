@@ -181,10 +181,10 @@ export class PayrollParser {
                     bases.push(currentBase)
                 }
 
-                console.log('fields', fields)
-                console.log('bases', bases)
-                console.table(mergedColumnsTable)
-                console.table(mergedRoles)
+                // console.log('fields', fields)
+                // console.log('bases', bases)
+                // console.table(mergedColumnsTable)
+                // console.table(mergedRoles)
 
 
                 pages.push({
