@@ -8,12 +8,14 @@ export type UploadPDFRequest = {
     tipo: "cartao-ponto" | "holerite"
 };
 
+const baseURL = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:3000`
+
 export async function uploadPDF({ arquivo, tipo }: UploadPDFRequest) {
     const formData = new FormData();
     formData.append("arquivo", arquivo);
     formData.append("tipo", tipo);
 
-    const response = await fetch(`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/transcricoes`, {
+    const response = await fetch(`${baseURL}/api/transcricoes`, {
         method: "POST",
         body: formData,
     });
@@ -28,7 +30,7 @@ export async function uploadPDF({ arquivo, tipo }: UploadPDFRequest) {
 }
 
 export async function getTranscription(id: string): Promise<Transcription | null> {
-    const response = await fetch(`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/transcricoes/${id}`);
+    const response = await fetch(`${baseURL}/api/transcricoes/${id}`);
 
     switch (response.status) {
         case 200:
@@ -42,7 +44,7 @@ export async function getTranscription(id: string): Promise<Transcription | null
 }
 
 export async function getPDF(id: string): Promise<Uint8Array<ArrayBufferLike>> {
-    const response = await fetch(`https://${process.env.NEXT_PUBLIC_VERCEL_URL}/api/transcricoes/${id}/file`, {
+    const response = await fetch(`${baseURL}/api/transcricoes/${id}/file`, {
         headers: {
             'Content-Type': 'application/pdf',
         },
