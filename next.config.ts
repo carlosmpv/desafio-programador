@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // Silencia o aviso e confirma que o Turbopack deve gerenciar o projeto
   experimental: {
     // Mantém a chave vazia de turbopack se não precisar de loaders customizados
+    serverActions: {
+      bodySizeLimit: '10mb'
+    }
   },
   turbopack: {},
 };
