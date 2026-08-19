@@ -20,18 +20,21 @@ export class PayrollParser {
         for (let page = 0; page < this.doc.pageCount(); page++) {
             const tables = this.tableDetector.detect(page);
             const text = this.doc.extractText(page, null);
-            const yearMonthMatch = text.matchAll(yearMonthRgx);
+            let yearMonthMatch = Array.from(text.matchAll(yearMonthRgx));
+            if (!yearMonthMatch.length) {
+                yearMonthMatch = Array(tables.length).fill(['', '', '']);
+            }
+
             const yearsMonths = Array.from(
                 yearMonthMatch
                     .filter(v => v.length >= 3)
                     .map(v => [v[1], v[2]])
             )
-
-
             // Vou assumir que haverá 1 tabela por ano/mes por página
             // console.log(yearsMonths)
 
             for (let i = 0; i < Math.min(yearsMonths.length, tables.length); i++) {
+
                 const [month, year] = yearsMonths[i];
                 const table = tables[i];
                 const roles = columnRoles(table);

@@ -36,6 +36,23 @@ describe("PayrollParser works", () => {
         const parser = new PayrollParser(doc)
         const payroll = parser.parse();
         // payroll.pages.map(pg => console.log(pg))
-        
+    })
+
+    test("Can parse payroll-02", () => {
+        const data = readFileSync(payRollFiles[1])
+        const doc = new WasmPdfDocument(data);
+
+        const parser = new PayrollParser(doc)
+        const payroll = parser.parse();
+        payroll.pages.map(pg => console.log(pg))
+    })
+
+    test("Can parse payroll-03", () => {
+        const data = readFileSync(payRollFiles[1])
+        const doc = new WasmPdfDocument(data);
+
+        const parser = new PayrollParser(doc)
+        const payroll = parser.parse();
+        payroll.pages.map(pg => console.log(pg))
     })
 })
