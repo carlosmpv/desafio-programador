@@ -13,7 +13,13 @@ const nextConfig: NextConfig = {
     // Mantém a chave vazia de turbopack se não precisar de loaders customizados
     serverActions: {
       bodySizeLimit: '10mb'
-    }
+    },
+    serverComponentsExternalPackages: [
+      'pdf-parse',
+      'pdf-oxide-wasm',
+      '@react-pdf/renderer',
+      '@prisma/client'
+    ]
   },
   turbopack: {},
 };
