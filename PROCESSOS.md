@@ -3,6 +3,11 @@
 
 - **Devcontainers**: Está sendo utilizado um devcontainer com _pnpm_ para o desenvolvimento isolado do resto sistema operacional no VSCode
 
+## Sobre o uso de IA
+- Por questões financeiras não tive acesso ao claude para este projeto. 
+- Utilizei o copilot apenas para questões que dependessem de um contexto mais amplo sobre o projeto mas que não fosse particularmente complicado
+- Para resolver questões de algortítmos enviei o mesmo problema para o Deepseek, Gemini e ChatGPT, comparei as respostas e adaptei ao código.
+
 ## Conhecendo melhor o problema
 
 1. Configurei testes com o vitest e passei os exemplos para a pasta assets e criei testes para assegurar de que poderia importá-los.
@@ -150,3 +155,33 @@ Na leitura das linhas pode ou não haver um código antes do nome da verba, para
 ### Estratégia aprimorada
 
 Da mesma forma como a posição foi utilizada para determinar quais palavras estão na mesma linha, algo semelhante pode ser feito para verificar se estão na mesma coluna. Um conjunto de dados que compartilham linhas e colunas compõe uma tabela, basta então discriminar o que essa tabela representa.
+
+A partir de que as tabelas fossem identificadas pelas posições das palavras somente seria necessário identificar colunas, valores e o que representam.
+
+Para cada coluna da tabela é possível identificar campos e bases da seguinte forma: 
+  - Colunas que possuam código (números inteiros de até 3 caracteres) determinam que a proxima label é referente à uma verba
+    - Uma verba espera 1 ou 2 valores numéricos (referência ou valor)
+  - Colunas que não possuem código provavelmente são verbas, se possuirem apenas 1 valor depois é ainda mais provavel
+
+### Implementação
+
+Para implementar a detecção de tabelas a partir da posição de palavras precisei primeiramente agregar as palavras fariam parte de uma mesma coluna.  
+
+Programei um protótipo que assume que as palavras estão perfeitamente alinhadas para servir de modelo para a IA gerar um código que entende como alinhadas palavras dentro de uma tolerância (posteriormente configurável). A partir dele obtive matrizes de frases que possivelmente seriam tabelas.
+
+Utilizei uma medida estimada de quanto espaço entre uma palavra e outra poderia representar um ' ' e juntei as palavras a partir disso.
+
+Ao ter as palavras unidas dentro de uma tolerância (posteriormente configurável), com ajuda da IA identifiquei onde estariam localizadas as colunas as colunas da tabela.
+
+Tendo agora a tabela com linhas e colunas bem determinados, tratei de identificar a responsabilidade (Role) de cada coluna.
+  - Multiplas colunas do tipo `label` são mescladas posteriormente
+  - Colunas que muito provavelmente são códigos apresentadas no inicio de uma leitura indicam que o resto será lido como **verba**
+    - Caso colunas se pareçam como verbas mas sejam seguidas de um valor à direita, são então reinterpretadas como `referência`
+  - Se houver apenas 1 valor após uma label de verba, ela será `value`
+
+Após gastar todo meu tempo nisso, iniciei a implementação do frontend tratando de ter um deploy no vercel.
+
+Fiz as rotas da api, as actions e a estrutura das páginas para então pedir para o copilot gerar as páginas dado o tipo de valor que seria passado para as tabelas.
+
+Me encarreguei de renderizar os PDF's no espaço que pedi para deixar reservado.
+  
