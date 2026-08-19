@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest",
-    "vercel-build": "prisma generate && prisma migrate deploy && next build"
+    "test": "vitest"
   },
   "dependencies": {
     "@embedpdf/core": "^2.15.0",
