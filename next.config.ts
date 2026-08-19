@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Instruí o Turbopack e o Node.js a carregar o módulo diretamente do node_modules
+  outputFileTracingExcludes: {
+    '*': ['./node_modules/@embedpdf/**', './node_modules/pdf-oxide-wasm/**'],
+  },
   serverExternalPackages: ["pdf-oxide-wasm"],
   output: 'standalone',
 
