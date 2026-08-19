@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Instruí o Turbopack e o Node.js a carregar o módulo diretamente do node_modules
   serverExternalPackages: ["pdf-oxide-wasm"],
+  output: 'standalone',
 
   // Silencia o aviso e confirma que o Turbopack deve gerenciar o projeto
   experimental: {

@@ -5,4 +5,4 @@ allowBuilds:
   prisma: true
   sharp: false
   sqlite3: true
-  unrs-resolver: false
+  unrs-resolver: true

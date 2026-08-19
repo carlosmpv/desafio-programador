@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest",
-    "postinstall": "prisma generate && prisma db push"
+    "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
     "@embedpdf/core": "^2.15.0",
@@ -18,7 +18,7 @@
     "@embedpdf/plugin-scroll": "^2.15.0",
     "@embedpdf/plugin-viewport": "^2.15.0",
     "@libpdf/core": "^0.4.1",
-    "@prisma/adapter-better-sqlite3": "^7.9.1",
+    "@prisma/adapter-pg": "^7.9.1",
     "@prisma/client": "^7.9.1",
     "@react-pdf/renderer": "^4.6.1",
     "@timohausmann/quadtree-ts": "^2.3.0",
@@ -29,15 +29,12 @@
     "pdf-tables-parser": "^1.0.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
-    "react-pdf": "^10.4.1",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^6.0.1"
+    "react-pdf": "^10.4.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
-    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
     "@types/react-dom": "^19",
